@@ -32,6 +32,39 @@ public final class ResortArt {
         });
     }
 
+    public static Image icon() {
+        return CACHE.computeIfAbsent("app-icon-native", key -> {
+            var url = ResortArt.class.getResource("/coralcove/media/app-icon.png");
+            if (url == null) {
+                url = ResortArt.class.getResource("/coralcove/media/app-icon.jpg");
+            }
+            if (url == null) {
+                url = ResortArt.class.getResource("/coralcove/icon.png");
+            }
+            if (url == null) {
+                return null;
+            }
+            return new Image(url.toExternalForm(), true);
+        });
+    }
+
+    public static Image icon(double size) {
+        String cacheKey = "app-icon-" + (int) size;
+        return CACHE.computeIfAbsent(cacheKey, key -> {
+            var url = ResortArt.class.getResource("/coralcove/media/app-icon.png");
+            if (url == null) {
+                url = ResortArt.class.getResource("/coralcove/media/app-icon.jpg");
+            }
+            if (url == null) {
+                url = ResortArt.class.getResource("/coralcove/icon.png");
+            }
+            if (url == null) {
+                return null;
+            }
+            return new Image(url.toExternalForm(), size, size, true, true, true);
+        });
+    }
+
     public static Image forScreen(String heading) {
         if (heading == null || heading.isBlank()) {
             return image("sunset-waves");

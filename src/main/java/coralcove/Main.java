@@ -5,6 +5,7 @@ import coralcove.database.DatabaseManager;
 import coralcove.service.Session;
 import coralcove.ui.Fx;
 import coralcove.ui.LoginView;
+import coralcove.ui.ResortArt;
 import coralcove.ui.ShellView;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -46,6 +47,19 @@ public class Main extends Application {
         stage.setTitle(AppConfig.WINDOW_TITLE);
         stage.setMinWidth(1200);
         stage.setMinHeight(750);
+
+        var appIcon = ResortArt.icon();
+        if (appIcon != null) {
+            stage.getIcons().setAll(
+                    ResortArt.icon(16),
+                    ResortArt.icon(32),
+                    ResortArt.icon(48),
+                    ResortArt.icon(64),
+                    ResortArt.icon(128),
+                    ResortArt.icon(256),
+                    appIcon
+            );
+        }
         Label waiting = new Label("Opening the desk…");
         waiting.getStyleClass().add("section-title");
         StackPane splash = new StackPane(waiting);

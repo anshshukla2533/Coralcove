@@ -89,6 +89,17 @@ public final class LoginView {
     public Parent root() {
         VBox brand = new VBox(14);
         brand.getStyleClass().add("login-brand");
+
+        ImageView loginLogo = new ImageView(ResortArt.icon(68));
+        loginLogo.setFitWidth(60);
+        loginLogo.setFitHeight(60);
+        loginLogo.setPreserveRatio(true);
+        loginLogo.setSmooth(true);
+        javafx.scene.shape.Rectangle loginLogoClip = new javafx.scene.shape.Rectangle(60, 60);
+        loginLogoClip.setArcWidth(14);
+        loginLogoClip.setArcHeight(14);
+        loginLogo.setClip(loginLogoClip);
+
         Label kicker = new Label("Resort desk");
         kicker.getStyleClass().add("login-kicker");
         Label mark = new Label("CoralCove");
@@ -102,7 +113,7 @@ public final class LoginView {
         VBox.setVgrow(spacer, Priority.ALWAYS);
         Label foot = new Label("Beach  ·  Lagoon  ·  Garden  ·  Cliff");
         foot.getStyleClass().add("login-foot");
-        brand.getChildren().addAll(kicker, mark, rule, blurb, spacer, foot);
+        brand.getChildren().addAll(loginLogo, kicker, mark, rule, blurb, spacer, foot);
 
         BorderPane page = new BorderPane();
         page.getStyleClass().add("login-page");
