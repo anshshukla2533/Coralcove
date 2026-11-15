@@ -12,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -42,7 +43,8 @@ public final class ProfileDialog {
         }
         dialog.setTitle("User Profile · " + user.getEffectiveName());
         dialog.setMinWidth(520);
-        dialog.setResizable(false);
+        dialog.setMinHeight(560);
+        dialog.setResizable(true);
 
         // Header
         Label headerTitle = new Label("Profile Details");
@@ -176,9 +178,18 @@ public final class ProfileDialog {
         VBox contentBox = new VBox(12, avatarSection, form);
         contentBox.setPadding(new Insets(16, 24, 20, 24));
 
+        ScrollPane scroller = new ScrollPane(contentBox);
+        scroller.setFitToWidth(true);
+        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroller.getStyleClass().add("desk-scroll");
+        scroller.setStyle("-fx-background-color: transparent; -fx-background: #FAF8F5; -fx-padding: 0;");
+
         // Buttons
         Button saveBtn = new Button("Save Profile");
         saveBtn.getStyleClass().add("primary");
+        saveBtn.setDefaultButton(true);
+        saveBtn.setMinWidth(110);
         saveBtn.setOnAction(event -> {
             String name = displayNameField.getText().trim();
             String email = emailField.getText().trim();
@@ -196,21 +207,23 @@ public final class ProfileDialog {
             });
         });
 
-        Button cancelBtn = new Button("Close");
+        Button cancelBtn = new Button("Cancel");
         cancelBtn.getStyleClass().add("secondary");
+        cancelBtn.setCancelButton(true);
+        cancelBtn.setMinWidth(80);
         cancelBtn.setOnAction(event -> dialog.close());
 
-        HBox buttonBar = new HBox(10, cancelBtn, saveBtn);
+        HBox buttonBar = new HBox(12, cancelBtn, saveBtn);
         buttonBar.setAlignment(Pos.CENTER_RIGHT);
         buttonBar.setPadding(new Insets(14, 24, 16, 24));
-        buttonBar.setStyle("-fx-background-color: #F7F4EF; -fx-border-color: #E4DDD2 transparent transparent transparent;");
+        buttonBar.setStyle("-fx-background-color: #F7F4EF; -fx-border-color: #E4DDD2 transparent transparent transparent; -fx-border-width: 1;");
 
         BorderPane root = new BorderPane();
         root.setTop(headerBox);
-        root.setCenter(contentBox);
+        root.setCenter(scroller);
         root.setBottom(buttonBar);
 
-        Scene scene = new Scene(root, 540, 550);
+        Scene scene = new Scene(root, 560, 680);
         var css = ProfileDialog.class.getResource("/coralcove/theme.css");
         if (css != null) {
             scene.getStylesheets().add(css.toExternalForm());
