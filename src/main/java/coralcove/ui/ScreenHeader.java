@@ -10,11 +10,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public final class ScreenHeader extends StackPane {
+    private final String heading;
     private final ImageView photo = new ImageView();
     private final Label title = new Label();
     private final Label hook = new Label();
 
     public ScreenHeader(String heading, String line) {
+        this.heading = heading;
         getStyleClass().add("screen-header");
         setMinHeight(128);
         setPrefHeight(128);
@@ -22,7 +24,7 @@ public final class ScreenHeader extends StackPane {
         photo.setPreserveRatio(false);
         photo.fitWidthProperty().bind(widthProperty());
         photo.fitHeightProperty().bind(heightProperty());
-        photo.setImage(ResortArt.currentResort());
+        photo.setImage(ResortArt.forScreen(heading));
         Region veil = new Region();
         veil.getStyleClass().add("header-veil");
         title.setText(heading);
@@ -48,6 +50,6 @@ public final class ScreenHeader extends StackPane {
     }
 
     public void refreshPhoto() {
-        photo.setImage(ResortArt.currentResort());
+        photo.setImage(ResortArt.forScreen(heading));
     }
 }

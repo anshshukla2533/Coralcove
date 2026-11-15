@@ -14,6 +14,8 @@ public class Guest {
     private String vip = "STANDARD";
     private String registeredOn;
     private boolean sample;
+    private boolean aadharVerified;
+    private String aadharImagePath;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -41,6 +43,10 @@ public class Guest {
     public void setRegisteredOn(String registeredOn) { this.registeredOn = registeredOn; }
     public boolean isSample() { return sample; }
     public void setSample(boolean sample) { this.sample = sample; }
+    public boolean isAadharVerified() { return aadharVerified; }
+    public void setAadharVerified(boolean aadharVerified) { this.aadharVerified = aadharVerified; }
+    public String getAadharImagePath() { return aadharImagePath; }
+    public void setAadharImagePath(String aadharImagePath) { this.aadharImagePath = aadharImagePath; }
 
     @Override
     public String toString() {

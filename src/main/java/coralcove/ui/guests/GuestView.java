@@ -22,6 +22,7 @@ public final class GuestView extends VBox implements Refreshable {
     private final Label summaryName = new Label("Select a guest.");
     private final Label summaryMeta = new Label();
     private final Label summaryVip = new Label();
+    private final VBox summaryAadhar = new VBox(6);
 
     public GuestView() {
         setSpacing(10);
@@ -44,12 +45,13 @@ public final class GuestView extends VBox implements Refreshable {
         table.getColumns().add(Columns.of("Email", Guest::getEmail));
         table.getColumns().add(Columns.of("Nationality", Guest::getNationality));
         table.getColumns().add(Columns.of("Class", Guest::getVip));
+        table.getColumns().add(Columns.of("Aadhaar", guest -> guest.isAadharVerified() ? "✓ Verified" : "Pending"));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         VBox.setVgrow(table, Priority.ALWAYS);
         summaryName.getStyleClass().add("panel-title");
         summaryMeta.getStyleClass().add("muted");
         summaryMeta.setWrapText(true);
-        VBox summary = new VBox(10, summaryName, summaryVip, summaryMeta);
+        VBox summary = new VBox(10, summaryName, summaryVip, summaryMeta, summaryAadhar);
         summary.getStyleClass().add("guest-summary");
         table.getSelectionModel().selectedItemProperty().addListener((obs, a, guest) -> show(guest));
         HBox body = new HBox(12, table, summary);
@@ -69,6 +71,7 @@ public final class GuestView extends VBox implements Refreshable {
     }
 
     private void show(Guest guest) {
+        summaryAadhar.getChildren().clear();
         if (guest == null) {
             summaryName.setText("Select a guest.");
             summaryVip.setGraphic(null);
@@ -81,7 +84,22 @@ public final class GuestView extends VBox implements Refreshable {
         summaryVip.setText("");
         summaryMeta.setText((guest.getPhone() == null ? "" : guest.getPhone())
                 + "\n" + (guest.getEmail() == null ? "" : guest.getEmail())
-                + "\n" + (guest.getNationality() == null ? "" : guest.getNationality()));
+                + "\n" + (guest.getNationality() == null ? "" : guest.getNationality())
+                + (guest.getIdDocNumber() != null && !guest.getIdDocNumber().isBlank() ? "\nID: " + guest.getIdDocNumber() : ""));
+
+        Label aadharTitle = new Label("Aadhaar Verification");
+        aadharTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #1B2430; -fx-padding: 8 0 2 0;");
+        var aadharChip = Fx.chip(guest.isAadharVerified() ? "Aadhaar Verified" : "Aadhaar Pending",
+                guest.isAadharVerified() ? "ready" : "held");
+
+        var thumbnail = coralcove.ui.AadharUtils.createThumbnail(guest.getAadharImagePath(), 160, 100, () -> {
+            var img = coralcove.ui.AadharUtils.loadAadharImage(guest.getAadharImagePath());
+            if (img != null) {
+                coralcove.ui.AadharUtils.showViewer(coralcove.Main.stage(), "Aadhaar Card · " + guest.getFullName(), img);
+            }
+        });
+
+        summaryAadhar.getChildren().addAll(aadharTitle, aadharChip, thumbnail);
     }
 
     private void edit(Guest existing) {

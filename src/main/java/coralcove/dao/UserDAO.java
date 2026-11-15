@@ -41,8 +41,9 @@ public final class UserDAO {
 
     public long insert(Connection connection, User user) throws SQLException {
         try (var ps = connection.prepareStatement("""
-                INSERT INTO users(username, password_hash, role, employee_id, resort_id, must_change_password, active, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users(username, password_hash, role, employee_id, resort_id, must_change_password, active, created_at,
+                    display_name, email, phone, avatar_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPasswordHash());
@@ -52,6 +53,10 @@ public final class UserDAO {
             ps.setInt(6, user.isMustChangePassword() ? 1 : 0);
             ps.setInt(7, user.isActive() ? 1 : 0);
             ps.setString(8, user.getCreatedAt());
+            ps.setString(9, user.getDisplayName());
+            ps.setString(10, user.getEmail());
+            ps.setString(11, user.getPhone());
+            ps.setString(12, user.getAvatarPath());
             ps.executeUpdate();
             try (var keys = ps.getGeneratedKeys()) {
                 keys.next();
@@ -72,13 +77,31 @@ public final class UserDAO {
 
     public void update(Connection connection, User user) throws SQLException {
         try (var ps = connection.prepareStatement("""
-                UPDATE users SET role = ?, employee_id = ?, resort_id = ?, active = ? WHERE id = ?
+                UPDATE users SET role = ?, employee_id = ?, resort_id = ?, active = ?,
+                    display_name = ?, email = ?, phone = ?, avatar_path = ? WHERE id = ?
                 """)) {
             ps.setString(1, user.getRole().name());
             Jdbc.nullableLong(ps, 2, user.getEmployeeId());
             Jdbc.nullableLong(ps, 3, user.getResortId());
             ps.setInt(4, user.isActive() ? 1 : 0);
-            ps.setLong(5, user.getId());
+            ps.setString(5, user.getDisplayName());
+            ps.setString(6, user.getEmail());
+            ps.setString(7, user.getPhone());
+            ps.setString(8, user.getAvatarPath());
+            ps.setLong(9, user.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateProfile(Connection connection, long id, String displayName, String email, String phone, String avatarPath) throws SQLException {
+        try (var ps = connection.prepareStatement("""
+                UPDATE users SET display_name = ?, email = ?, phone = ?, avatar_path = ? WHERE id = ?
+                """)) {
+            ps.setString(1, displayName);
+            ps.setString(2, email);
+            ps.setString(3, phone);
+            ps.setString(4, avatarPath);
+            ps.setLong(5, id);
             ps.executeUpdate();
         }
     }
@@ -94,6 +117,14 @@ public final class UserDAO {
         user.setMustChangePassword(rs.getInt("must_change_password") == 1);
         user.setActive(rs.getInt("active") == 1);
         user.setCreatedAt(rs.getString("created_at"));
+        try {
+            user.setDisplayName(rs.getString("display_name"));
+            user.setEmail(rs.getString("email"));
+            user.setPhone(rs.getString("phone"));
+            user.setAvatarPath(rs.getString("avatar_path"));
+        } catch (SQLException ignored) {
+            // Column may not be present in pre-migration queries
+        }
         return user;
     }
 }

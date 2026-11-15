@@ -108,6 +108,30 @@ public final class AuthenticationService {
         });
     }
 
+    public void updateProfile(long userId, String displayName, String email, String phone, String avatarPath) {
+        Transactions.in(connection -> {
+            users.updateProfile(connection, userId, displayName, email, phone, avatarPath);
+            audit.log(connection, userId, "PROFILE_UPDATE", "users", String.valueOf(userId), displayName);
+            return null;
+        });
+        User current = Session.get();
+        if (current != null && current.getId() == userId) {
+            current.setDisplayName(displayName);
+            current.setEmail(email);
+            current.setPhone(phone);
+            current.setAvatarPath(avatarPath);
+        }
+        Session.dataChanged();
+    }
+
+    public User findById(long userId) {
+        try (var connection = DatabaseManager.getConnection()) {
+            return users.findById(connection, userId);
+        } catch (SQLException ex) {
+            throw new AppException(Transactions.sqlMessage(ex), ex);
+        }
+    }
+
     private void applyResort(java.sql.Connection connection, User user) throws SQLException {
         if (user.getRole() != Role.ADMIN) {
             if (user.getResortId() == null) {

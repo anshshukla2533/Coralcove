@@ -10,6 +10,10 @@ public class User {
     private boolean mustChangePassword;
     private boolean active;
     private String createdAt;
+    private String displayName;
+    private String email;
+    private String phone;
+    private String avatarPath;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -29,4 +33,16 @@ public class User {
     public void setActive(boolean active) { this.active = active; }
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAvatarPath() { return avatarPath; }
+    public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
+
+    public String getEffectiveName() {
+        return (displayName != null && !displayName.isBlank()) ? displayName : username;
+    }
 }

@@ -17,13 +17,40 @@ public final class ResortArt {
         if (name == null || name.isBlank()) {
             return image("resort-beach");
         }
-        return CACHE.computeIfAbsent(name, key -> {
+        String cleanName = name.endsWith(".jpg") || name.endsWith(".png")
+                ? name.substring(0, name.lastIndexOf('.'))
+                : name;
+        return CACHE.computeIfAbsent(cleanName, key -> {
             var url = ResortArt.class.getResource("/coralcove/media/" + key + ".jpg");
+            if (url == null) {
+                url = ResortArt.class.getResource("/coralcove/media/" + key + ".png");
+            }
             if (url == null) {
                 return null;
             }
             return new Image(url.toExternalForm(), 1280, 720, true, true, true);
         });
+    }
+
+    public static Image forScreen(String heading) {
+        if (heading == null || heading.isBlank()) {
+            return image("sunset-waves");
+        }
+        return switch (heading.toLowerCase().trim()) {
+            case "desk", "dashboard" -> image("sunset-waves");
+            case "stays" -> image("resort-cliff");
+            case "lodges" -> image("zone-lagoon");
+            case "guests" -> image("zone-garden");
+            case "arrivals" -> image("zone-lagoon");
+            case "billing" -> image("sunset-waves");
+            case "lodge care" -> image("zone-garden");
+            case "experiences" -> image("exp-restaurant");
+            case "employees" -> image("resort-cliff");
+            case "inventory" -> image("exp-boat");
+            case "reports" -> image("sunset-waves");
+            case "settings" -> image("zone-beach");
+            default -> image("sunset-waves");
+        };
     }
 
     public static Image forZone(String zone) {

@@ -37,6 +37,14 @@ public final class LodgeService {
         }
     }
 
+    public Lodge findById(long id) {
+        try (var connection = DatabaseManager.getConnection()) {
+            return lodges.findById(connection, id);
+        } catch (SQLException ex) {
+            throw new AppException(Transactions.sqlMessage(ex), ex);
+        }
+    }
+
     public List<Lodge> availableForStay(java.time.LocalDate checkIn, java.time.LocalDate checkOut, Long ignoreReservation) {
         AuthorizationService.require(coralcove.model.AppModule.LODGES);
         try (var connection = DatabaseManager.getConnection()) {

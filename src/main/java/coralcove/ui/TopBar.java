@@ -19,6 +19,7 @@ import javafx.scene.layout.Region;
 public final class TopBar extends HBox {
     private final Label title = new Label("Dashboard");
     private final ComboBox<ResortChoice> resorts = new ComboBox<>();
+    private final HBox profilePill = new HBox(8);
     private boolean filling;
 
     public TopBar(Runnable onResortChanged) {
@@ -27,6 +28,11 @@ public final class TopBar extends HBox {
         title.getStyleClass().add("section-title");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button profileBtn = new Button("Profile");
+        profileBtn.getStyleClass().add("secondary");
+        profileBtn.setOnAction(event -> openProfile());
+
         Button password = new Button("Password");
         password.getStyleClass().add("secondary");
         password.setOnAction(event -> {
@@ -38,9 +44,13 @@ public final class TopBar extends HBox {
         Button logout = new Button("Log out");
         logout.getStyleClass().add("secondary");
         logout.setOnAction(event -> Main.showLogin());
+
+        profilePill.setAlignment(Pos.CENTER_LEFT);
+        profilePill.setStyle("-fx-cursor: hand; -fx-padding: 4 10; -fx-background-color: #F7F4EF; -fx-background-radius: 20; -fx-border-color: #E4DDD2; -fx-border-radius: 20;");
+        profilePill.setOnMouseClicked(event -> openProfile());
+        refreshUser();
+
         User user = Session.get();
-        Label who = new Label(user == null ? "" : user.getUsername());
-        who.getStyleClass().add("signed-in");
         if (user != null && user.getRole() == Role.ADMIN) {
             resorts.getItems().setAll(loadChoices());
             selectCurrent();
@@ -51,11 +61,31 @@ public final class TopBar extends HBox {
                 Session.setResortFilter(choice.id());
                 onResortChanged.run();
             });
-            getChildren().addAll(title, spacer, resorts, who, password, logout);
+            getChildren().addAll(title, spacer, resorts, profilePill, profileBtn, password, logout);
         } else {
             Label locked = new Label(resortLabel(user));
             locked.getStyleClass().add("muted");
-            getChildren().addAll(title, spacer, locked, who, password, logout);
+            getChildren().addAll(title, spacer, locked, profilePill, profileBtn, password, logout);
+        }
+    }
+
+    private void openProfile() {
+        User user = Session.get();
+        if (user != null) {
+            ProfileDialog.show(user, this::refreshUser);
+        }
+    }
+
+    public void refreshUser() {
+        User user = Session.get();
+        profilePill.getChildren().clear();
+        if (user != null) {
+            var avatarNode = AvatarUtils.avatarNode(user, 26);
+            Label nameLabel = new Label(user.getEffectiveName());
+            nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #1B2430;");
+            var chip = Fx.chip(user.getRole() == Role.ADMIN ? "Owner" : user.getRole().label(),
+                    user.getRole() == Role.ADMIN ? "vip" : "ready");
+            profilePill.getChildren().addAll(avatarNode, nameLabel, chip);
         }
     }
 

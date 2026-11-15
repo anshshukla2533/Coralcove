@@ -47,8 +47,9 @@ public final class DatabaseInitializer {
             rs.next();
             if (rs.getInt(1) == 0) {
                 try (var insert = connection.prepareStatement("""
-                        INSERT INTO users(username, password_hash, role, must_change_password, active, created_at)
-                        VALUES (?, ?, 'ADMIN', 1, 1, datetime('now'))
+                        INSERT INTO users(username, password_hash, role, must_change_password, active, created_at,
+                                         display_name, email, phone, avatar_path)
+                        VALUES (?, ?, 'ADMIN', 1, 1, datetime('now'), 'Aniket Sharma (Owner)', 'owner@coralcove.resorts', '+91 98765 43210', 'avatar-owner.png')
                         """)) {
                     insert.setString(1, AppConfig.DEFAULT_ADMIN);
                     insert.setString(2, PasswordHasher.hash(AppConfig.DEFAULT_PASSWORD));
@@ -146,6 +147,10 @@ public final class DatabaseInitializer {
                 must_change_password INTEGER NOT NULL DEFAULT 0,
                 active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL,
+                display_name TEXT,
+                email TEXT,
+                phone TEXT,
+                avatar_path TEXT,
                 FOREIGN KEY (employee_id) REFERENCES employees(id),
                 FOREIGN KEY (resort_id) REFERENCES resorts(id)
             )
@@ -164,7 +169,9 @@ public final class DatabaseInitializer {
                 preferences TEXT,
                 vip TEXT NOT NULL DEFAULT 'STANDARD' CHECK (vip IN ('STANDARD','VIP')),
                 registered_on TEXT NOT NULL,
-                is_sample INTEGER NOT NULL DEFAULT 0
+                is_sample INTEGER NOT NULL DEFAULT 0,
+                aadhar_verified INTEGER NOT NULL DEFAULT 0,
+                aadhar_image_path TEXT
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_guests_phone ON guests(phone)",

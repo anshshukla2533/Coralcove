@@ -138,6 +138,8 @@ public final class DemoDataService {
                 guest.setIdDocType("Aadhaar");
                 guest.setIdDocNumber("XXXX-XXXX-" + (1000 + i));
                 guest.setVip(i % 5 == 0 ? "VIP" : "STANDARD");
+                guest.setAadharVerified(i % 4 != 3);
+                guest.setAadharImagePath(i % 4 != 3 ? "sample-aadhar.png" : null);
                 guest.setRegisteredOn(DateUtils.iso(DateUtils.today().minusDays(30 + i)));
                 guest.setSample(true);
                 guestIds[i] = guests.insert(connection, guest);
@@ -310,10 +312,28 @@ public final class DemoDataService {
             desk.setPasswordHash(PasswordHasher.hash("Desk@123"));
             desk.setRole(Role.FRONT_DESK);
             desk.setResortId(beachId);
-            desk.setMustChangePassword(true);
+            desk.setMustChangePassword(false);
             desk.setActive(true);
             desk.setCreatedAt(DateUtils.nowStamp());
+            desk.setDisplayName("Anita George");
+            desk.setEmail("anita.george@coralcove.example");
+            desk.setPhone("+91 9720000000");
+            desk.setAvatarPath("avatar-frontdesk.png");
             new UserDAO().insert(connection, desk);
+
+            User mgr = new User();
+            mgr.setUsername("cliff.mgr");
+            mgr.setPasswordHash(PasswordHasher.hash("Manager@123"));
+            mgr.setRole(Role.MANAGER);
+            mgr.setResortId(cliffId);
+            mgr.setMustChangePassword(false);
+            mgr.setActive(true);
+            mgr.setCreatedAt(DateUtils.nowStamp());
+            mgr.setDisplayName("Fathima Noor");
+            mgr.setEmail("fathima.noor@coralcove.example");
+            mgr.setPhone("+91 9720000008");
+            mgr.setAvatarPath("avatar-manager.png");
+            new UserDAO().insert(connection, mgr);
             new AuditDAO().log(connection, Session.get().getId(), "DEMO_LOAD", "group_settings", "demo", "sample rows");
             return null;
         });
@@ -341,7 +361,7 @@ public final class DemoDataService {
             exec(connection, "DELETE FROM guests WHERE is_sample=1");
             exec(connection, "DELETE FROM employees WHERE is_sample=1");
             exec(connection, "DELETE FROM experiences WHERE resort_id IN (SELECT id FROM resorts WHERE is_sample=1)");
-            exec(connection, "DELETE FROM users WHERE username='beach.desk'");
+            exec(connection, "DELETE FROM users WHERE username IN ('beach.desk', 'cliff.mgr')");
             exec(connection, "DELETE FROM resorts WHERE is_sample=1");
             new AuditDAO().log(connection, Session.get().getId(), "DEMO_RESET", "group_settings", "demo", "sample rows removed");
             return null;

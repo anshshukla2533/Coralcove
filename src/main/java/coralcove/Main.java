@@ -64,11 +64,40 @@ public class Main extends Application {
         }));
         Fx.run(() -> {
             DatabaseManager.init(AppConfig.databasePath());
+            ensureShowcaseData();
             return null;
         }, ignored -> {
             var login = new LoginView().root();
             stage.getScene().setRoot(login);
             Fx.fadeIn(login);
         });
+    }
+
+    private static void ensureShowcaseData() {
+        boolean shouldLoad = false;
+        try (var connection = DatabaseManager.getConnection();
+             var ps = connection.prepareStatement("SELECT COUNT(*) FROM lodges");
+             var rs = ps.executeQuery()) {
+            if (rs.next() && rs.getInt(1) == 0) {
+                shouldLoad = true;
+            }
+        } catch (Exception ex) {
+            coralcove.util.AppLogger.error("Failed to check lodges count: " + ex.getMessage(), ex);
+        }
+        if (shouldLoad) {
+            try {
+                coralcove.model.User admin;
+                try (var connection = DatabaseManager.getConnection()) {
+                    admin = new coralcove.dao.UserDAO().findByUsername(connection, AppConfig.DEFAULT_ADMIN);
+                }
+                if (admin != null) {
+                    Session.set(admin);
+                    new coralcove.service.DemoDataService().load();
+                    Session.clear();
+                }
+            } catch (Exception ex) {
+                coralcove.util.AppLogger.error("Failed to seed showcase data: " + ex.getMessage(), ex);
+            }
+        }
     }
 }

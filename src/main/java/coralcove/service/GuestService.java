@@ -20,6 +20,22 @@ public final class GuestService {
 
     private final GuestDAO guests = new GuestDAO();
 
+    public Guest findById(long id) {
+        try (var connection = DatabaseManager.getConnection()) {
+            return guests.findById(connection, id);
+        } catch (SQLException ex) {
+            throw new AppException(Transactions.sqlMessage(ex), ex);
+        }
+    }
+
+    public void updateAadhar(long guestId, boolean verified, String imagePath) {
+        Transactions.in(connection -> {
+            guests.updateAadhar(connection, guestId, verified, imagePath);
+            return null;
+        });
+        Session.dataChanged();
+    }
+
     public List<Guest> search(String text) {
         AuthorizationService.require(coralcove.model.AppModule.GUESTS);
         try (var connection = DatabaseManager.getConnection()) {

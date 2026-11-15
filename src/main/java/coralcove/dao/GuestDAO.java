@@ -45,8 +45,8 @@ public final class GuestDAO {
     public long insert(Connection connection, Guest guest) throws SQLException {
         try (var ps = connection.prepareStatement("""
                 INSERT INTO guests(full_name, phone, email, gender, nationality, address, id_doc_type,
-                    id_doc_number, preferences, vip, registered_on, is_sample)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                    id_doc_number, preferences, vip, registered_on, is_sample, aadhar_verified, aadhar_image_path)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             fill(ps, guest);
             ps.executeUpdate();
@@ -60,11 +60,21 @@ public final class GuestDAO {
     public void update(Connection connection, Guest guest) throws SQLException {
         try (var ps = connection.prepareStatement("""
                 UPDATE guests SET full_name=?, phone=?, email=?, gender=?, nationality=?, address=?,
-                    id_doc_type=?, id_doc_number=?, preferences=?, vip=?, registered_on=?, is_sample=?
+                    id_doc_type=?, id_doc_number=?, preferences=?, vip=?, registered_on=?, is_sample=?,
+                    aadhar_verified=?, aadhar_image_path=?
                 WHERE id=?
                 """)) {
             fill(ps, guest);
-            ps.setLong(13, guest.getId());
+            ps.setLong(15, guest.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateAadhar(Connection connection, long guestId, boolean verified, String imagePath) throws SQLException {
+        try (var ps = connection.prepareStatement("UPDATE guests SET aadhar_verified=?, aadhar_image_path=? WHERE id=?")) {
+            ps.setInt(1, verified ? 1 : 0);
+            ps.setString(2, emptyToNull(imagePath));
+            ps.setLong(3, guestId);
             ps.executeUpdate();
         }
     }
@@ -107,6 +117,8 @@ public final class GuestDAO {
         ps.setString(10, guest.getVip() == null ? "STANDARD" : guest.getVip());
         ps.setString(11, guest.getRegisteredOn());
         ps.setInt(12, guest.isSample() ? 1 : 0);
+        ps.setInt(13, guest.isAadharVerified() ? 1 : 0);
+        ps.setString(14, emptyToNull(guest.getAadharImagePath()));
     }
 
     private String emptyToNull(String value) {
@@ -128,6 +140,12 @@ public final class GuestDAO {
         guest.setVip(rs.getString("vip"));
         guest.setRegisteredOn(rs.getString("registered_on"));
         guest.setSample(rs.getInt("is_sample") == 1);
+        try {
+            guest.setAadharVerified(rs.getInt("aadhar_verified") == 1);
+            guest.setAadharImagePath(rs.getString("aadhar_image_path"));
+        } catch (SQLException ignored) {
+            // Pre-migration compatibility
+        }
         return guest;
     }
 }

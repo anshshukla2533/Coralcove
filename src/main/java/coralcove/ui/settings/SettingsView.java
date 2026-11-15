@@ -9,6 +9,7 @@ import coralcove.service.ResortService;
 import coralcove.ui.Columns;
 import coralcove.ui.Dialogs;
 import coralcove.ui.Fx;
+import coralcove.ui.ProfileDialog;
 import coralcove.ui.Refreshable;
 import coralcove.ui.ResortArt;
 import coralcove.ui.ScreenHeader;
@@ -17,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import coralcove.util.AppException;
@@ -38,10 +40,14 @@ public final class SettingsView extends VBox implements Refreshable {
     private final TableView<Resort> resortTable = new TableView<>();
     private final TableView<User> userTable = new TableView<>();
     private final FlowPane photos = new FlowPane(10, 10);
+    private final HBox myProfileCard = new HBox(16);
     private final ScreenHeader header = new ScreenHeader("Settings", "Resorts, users, and sample data.");
 
     public SettingsView() {
         setSpacing(10);
+        myProfileCard.setAlignment(Pos.CENTER_LEFT);
+        myProfileCard.setPadding(new Insets(14, 18, 14, 18));
+        myProfileCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #E4DDD2; -fx-border-radius: 8;");
         resortTable.getColumns().add(Columns.of("Name", Resort::getName));
         resortTable.getColumns().add(Columns.of("Location", Resort::getLocation));
         resortTable.getColumns().add(Columns.of("Zone", Resort::getTimezone));
@@ -49,6 +55,7 @@ public final class SettingsView extends VBox implements Refreshable {
         resortTable.getColumns().add(Columns.of("Active", resort -> resort.isActive() ? "Yes" : "No"));
         resortTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         userTable.getColumns().add(Columns.of("Username", User::getUsername));
+        userTable.getColumns().add(Columns.of("Name", User::getEffectiveName));
         userTable.getColumns().add(Columns.of("Role", user -> user.getRole().label()));
         userTable.getColumns().add(Columns.of("Resort", user -> user.getResortId() == null ? "All" : String.valueOf(user.getResortId())));
         userTable.getColumns().add(Columns.of("Active", user -> user.isActive() ? "Yes" : "No"));
@@ -87,6 +94,8 @@ public final class SettingsView extends VBox implements Refreshable {
         photos.setPadding(new Insets(4));
         getChildren().addAll(
                 header,
+                new Label("My Profile"),
+                myProfileCard,
                 scroller,
                 new Label("Resorts"),
                 Fx.bar(newResort, editResort),
@@ -99,6 +108,7 @@ public final class SettingsView extends VBox implements Refreshable {
 
     @Override
     public void refresh() {
+        renderProfileCard();
         Fx.run(() -> new Object[] {resorts.list(false), auth.listUsers()}, loaded -> {
             java.util.List<Resort> properties = (java.util.List<Resort>) loaded[0];
             resortTable.getItems().setAll(properties);
@@ -110,6 +120,36 @@ public final class SettingsView extends VBox implements Refreshable {
             header.refreshPhoto();
             header.setHook(properties.size() + " resorts  ·  " + ((java.util.List<?>) loaded[1]).size() + " accounts");
         });
+    }
+
+    private void renderProfileCard() {
+        myProfileCard.getChildren().clear();
+        User current = coralcove.service.Session.get();
+        if (current == null) {
+            return;
+        }
+        var avatar = coralcove.ui.AvatarUtils.avatarNode(current, 56);
+
+        Label name = new Label(current.getEffectiveName());
+        name.getStyleClass().add("panel-title");
+
+        String subText = "@" + current.getUsername() + "  ·  "
+                + (current.getEmail() != null && !current.getEmail().isBlank() ? current.getEmail() : "No email set")
+                + "  ·  "
+                + (current.getPhone() != null && !current.getPhone().isBlank() ? current.getPhone() : "No phone set");
+        Label details = new Label(subText);
+        details.getStyleClass().add("muted");
+
+        var roleChip = Fx.chip(current.getRole() == Role.ADMIN ? "Owner / Administrator" : current.getRole().label(),
+                current.getRole() == Role.ADMIN ? "vip" : "ready");
+
+        VBox info = new VBox(4, new HBox(8, name, roleChip), details);
+        HBox.setHgrow(info, Priority.ALWAYS);
+
+        Button editProfileBtn = button("Edit Profile & Photo", true);
+        editProfileBtn.setOnAction(e -> ProfileDialog.show(current, this::refresh));
+
+        myProfileCard.getChildren().addAll(avatar, info, editProfileBtn);
     }
 
     private void editResort() {
