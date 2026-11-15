@@ -63,9 +63,17 @@ public final class ArrivalView extends VBox implements Refreshable {
         Button out = button("Check out", false);
         out.setOnAction(event -> act(false));
 
-        photo.setFitWidth(280);
-        photo.setFitHeight(180);
-        photo.setPreserveRatio(false);
+        photo.setPreserveRatio(true);
+        photo.setSmooth(true);
+        StackPane photoHolder = new StackPane(photo);
+        photoHolder.setMinSize(300, 200);
+        photoHolder.setPrefSize(300, 200);
+        photoHolder.setMaxSize(300, 200);
+        javafx.scene.shape.Rectangle photoClip = new javafx.scene.shape.Rectangle(300, 200);
+        photoClip.setArcWidth(12);
+        photoClip.setArcHeight(12);
+        photoHolder.setClip(photoClip);
+        updateArrivalPhotoSize();
 
         guestTitle.getStyleClass().add("panel-title");
         guestTitle.setWrapText(true);
@@ -77,7 +85,7 @@ public final class ArrivalView extends VBox implements Refreshable {
         copy.setPadding(new Insets(16));
         HBox.setHgrow(copy, Priority.ALWAYS);
 
-        HBox card = new HBox(0, photo, copy);
+        HBox card = new HBox(0, photoHolder, copy);
         card.getStyleClass().add("stay-card");
         card.setAlignment(Pos.CENTER_LEFT);
 
@@ -152,6 +160,7 @@ public final class ArrivalView extends VBox implements Refreshable {
             guestTitle.setText("No stay matches that reference.");
             meta.setText("");
             photo.setImage(ResortArt.image("zone-lagoon"));
+            updateArrivalPhotoSize();
             return;
         }
 
@@ -163,6 +172,7 @@ public final class ArrivalView extends VBox implements Refreshable {
         } else {
             photo.setImage(ResortArt.image("zone-lagoon"));
         }
+        updateArrivalPhotoSize();
 
         guestTitle.setText(stay.getGuestName() + "  ·  Lodge " + stay.getUnitCode()
                 + (lodge != null ? " (" + lodge.getZone() + " ZONE)" : ""));
@@ -175,6 +185,15 @@ public final class ArrivalView extends VBox implements Refreshable {
                 + (currentGuest != null && currentGuest.isAadharVerified() ? "Aadhaar Verified" : "Aadhaar Pending"));
 
         renderAadharSection();
+    }
+
+    private void updateArrivalPhotoSize() {
+        var img = photo.getImage();
+        if (img != null && img.getWidth() > 0 && img.getHeight() > 0) {
+            double scale = Math.max(300.0 / img.getWidth(), 200.0 / img.getHeight());
+            photo.setFitWidth(img.getWidth() * scale);
+            photo.setFitHeight(img.getHeight() * scale);
+        }
     }
 
     private void renderAadharSection() {

@@ -271,9 +271,14 @@ public final class SettingsView extends VBox implements Refreshable {
 
     private static StackPane card(Resort resort) {
         ImageView photo = new ImageView(ResortArt.forResort(resort));
-        photo.setFitWidth(220);
-        photo.setFitHeight(120);
-        photo.setPreserveRatio(false);
+        photo.setPreserveRatio(true);
+        photo.setSmooth(true);
+        var img = photo.getImage();
+        if (img != null && img.getWidth() > 0 && img.getHeight() > 0) {
+            double scale = Math.max(220.0 / img.getWidth(), 120.0 / img.getHeight());
+            photo.setFitWidth(img.getWidth() * scale);
+            photo.setFitHeight(img.getHeight() * scale);
+        }
         Region veil = new Region();
         veil.setStyle("-fx-background-color: linear-gradient(from 0% 40% to 0% 100%, transparent, rgba(20,26,34,0.9));");
         Label name = new Label(resort.getName());
@@ -285,6 +290,12 @@ public final class SettingsView extends VBox implements Refreshable {
         copy.setAlignment(Pos.BOTTOM_LEFT);
         StackPane card = new StackPane(photo, veil, copy);
         card.getStyleClass().add("photo-card");
+        card.setPrefWidth(220);
+        card.setPrefHeight(120);
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(220, 120);
+        clip.setArcWidth(12);
+        clip.setArcHeight(12);
+        card.setClip(clip);
         StackPane.setAlignment(copy, Pos.BOTTOM_LEFT);
         return card;
     }

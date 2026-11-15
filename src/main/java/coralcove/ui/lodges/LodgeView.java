@@ -149,9 +149,14 @@ public final class LodgeView extends VBox implements Refreshable {
 
     private StackPane card(Lodge lodge) {
         ImageView photo = new ImageView(ResortArt.forZone(lodge.getZone()));
-        photo.setFitWidth(180);
-        photo.setFitHeight(112);
-        photo.setPreserveRatio(false);
+        photo.setPreserveRatio(true);
+        photo.setSmooth(true);
+        var img = photo.getImage();
+        if (img != null && img.getWidth() > 0 && img.getHeight() > 0) {
+            double scale = Math.max(180.0 / img.getWidth(), 112.0 / img.getHeight());
+            photo.setFitWidth(img.getWidth() * scale);
+            photo.setFitHeight(img.getHeight() * scale);
+        }
         Region veil = new Region();
         veil.setStyle("-fx-background-color: linear-gradient(from 0% 40% to 0% 100%, transparent, rgba(20,26,34,0.88));");
         Label code = new Label(lodge.getUnitCode());
@@ -170,6 +175,11 @@ public final class LodgeView extends VBox implements Refreshable {
         StackPane.setAlignment(copy, Pos.BOTTOM_LEFT);
         card.getStyleClass().add("photo-card");
         card.setPrefWidth(180);
+        card.setPrefHeight(112);
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(180, 112);
+        clip.setArcWidth(12);
+        clip.setArcHeight(12);
+        card.setClip(clip);
         return card;
     }
 

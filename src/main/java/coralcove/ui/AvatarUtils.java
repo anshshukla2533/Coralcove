@@ -51,18 +51,31 @@ public final class AvatarUtils {
         Image img = loadAvatar(avatarPath);
         if (img != null) {
             ImageView view = new ImageView(img);
-            view.setFitWidth(size);
-            view.setFitHeight(size);
-            view.setPreserveRatio(false);
+            view.setPreserveRatio(true);
             view.setSmooth(true);
+            double w = img.getWidth();
+            double h = img.getHeight();
+            if (w > 0 && h > 0) {
+                double scale = Math.max(size / w, size / h);
+                view.setFitWidth(w * scale);
+                view.setFitHeight(h * scale);
+            } else {
+                view.setFitWidth(size);
+                view.setFitHeight(size);
+            }
+
+            StackPane photoHolder = new StackPane(view);
+            photoHolder.setMinSize(size, size);
+            photoHolder.setPrefSize(size, size);
+            photoHolder.setMaxSize(size, size);
             Circle clip = new Circle(size / 2, size / 2, size / 2);
-            view.setClip(clip);
+            photoHolder.setClip(clip);
 
             Circle ring = new Circle(size / 2);
             ring.setFill(null);
             ring.setStyle("-fx-stroke: #C4A35A; -fx-stroke-width: 1.5;");
 
-            StackPane container = new StackPane(view, ring);
+            StackPane container = new StackPane(photoHolder, ring);
             container.setMaxSize(size, size);
             container.setMinSize(size, size);
             container.setPrefSize(size, size);

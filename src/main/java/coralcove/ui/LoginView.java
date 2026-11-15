@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
@@ -112,9 +113,24 @@ public final class LoginView {
         StackPane stage = new StackPane();
         ImageView waves = new ImageView(ResortArt.image("sunset-waves"));
         waves.getStyleClass().add("login-waves");
-        waves.setPreserveRatio(false);
-        waves.fitWidthProperty().bind(stage.widthProperty().multiply(1.16));
-        waves.fitHeightProperty().bind(stage.heightProperty().multiply(1.16));
+        waves.setPreserveRatio(true);
+        waves.setSmooth(true);
+        Runnable updateWaves = () -> {
+            Image img = waves.getImage();
+            if (img == null || img.getWidth() <= 0 || img.getHeight() <= 0) {
+                return;
+            }
+            double targetW = stage.getWidth() * 1.20;
+            double targetH = stage.getHeight() * 1.20;
+            if (targetW <= 0 || targetH <= 0) {
+                return;
+            }
+            double scale = Math.max(targetW / img.getWidth(), targetH / img.getHeight());
+            waves.setFitWidth(img.getWidth() * scale);
+            waves.setFitHeight(img.getHeight() * scale);
+        };
+        stage.widthProperty().addListener((obs, o, n) -> updateWaves.run());
+        stage.heightProperty().addListener((obs, o, n) -> updateWaves.run());
         Region veil = new Region();
         veil.getStyleClass().add("login-veil");
         stage.getChildren().addAll(waves, veil, page);
