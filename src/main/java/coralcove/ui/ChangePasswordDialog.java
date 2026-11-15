@@ -4,6 +4,7 @@ import coralcove.Main;
 import coralcove.model.User;
 import coralcove.service.AuthenticationService;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -31,8 +32,9 @@ public final class ChangePasswordDialog {
         error.getStyleClass().add("error");
         error.setWrapText(true);
         GridPane form = new GridPane();
-        form.setHgap(10);
-        form.setVgap(8);
+        form.setHgap(16);
+        form.setVgap(12);
+        form.setPadding(new Insets(18, 24, 14, 24));
         form.add(new Label("Current"), 0, 0);
         form.add(current, 1, 0);
         form.add(new Label("New"), 0, 1);
@@ -42,6 +44,7 @@ public final class ChangePasswordDialog {
         form.add(error, 0, 3, 2, 1);
         dialog.getDialogPane().setContent(form);
         Fx.dress(dialog.getDialogPane());
+        dialog.getDialogPane().setPrefWidth(480);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         Button ok = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         ok.setText("Save");

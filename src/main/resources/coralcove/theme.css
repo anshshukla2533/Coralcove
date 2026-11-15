@@ -563,10 +563,15 @@
     -fx-background-color: #F7F4EF;
 }
 
+.dialog-pane > .content {
+    -fx-background-color: #F7F4EF;
+    -fx-padding: 0;
+}
+
 .desk-dialog .header-panel,
 .dialog-pane .header-panel {
     -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #1B2430, #141A22);
-    -fx-padding: 16 18 16 18;
+    -fx-padding: 16 22 16 22;
     -fx-border-color: transparent transparent #C4A35A transparent;
     -fx-border-width: 0 0 2 0;
 }
@@ -581,12 +586,13 @@
 .dialog-pane .content.label,
 .alert .content.label {
     -fx-text-fill: #1F2933;
-    -fx-padding: 14 6 10 6;
+    -fx-padding: 16 24 12 24;
 }
 
 .dialog-pane > .button-bar > .container {
     -fx-background-color: #F7F4EF;
-    -fx-padding: 8 12 14 12;
+    -fx-padding: 12 26 16 26;
+    -fx-spacing: 12;
 }
 
 .tooltip {
