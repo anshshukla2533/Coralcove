@@ -48,9 +48,11 @@ public final class StayView extends VBox implements Refreshable {
         Button edit = button("Edit", false);
         edit.setOnAction(event -> {
             StayBooking stay = table.getSelectionModel().getSelectedItem();
-            if (stay != null) {
-                StayDialog.show(stay, draft -> Fx.run(() -> stays.update(draft), saved -> refresh()));
+            if (stay == null) {
+                Fx.info("Select a stay from the table first.");
+                return;
             }
+            StayDialog.show(stay, draft -> Fx.run(() -> stays.update(draft), saved -> refresh()));
         });
         Button cancel = button("Cancel stay", false);
         cancel.setOnAction(event -> cancel());
@@ -71,6 +73,7 @@ public final class StayView extends VBox implements Refreshable {
         table.getColumns().add(statusCol);
         table.getColumns().add(Columns.of("Total", stay -> CurrencyUtils.format(stay.getTotal())));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setMinHeight(320);
         VBox.setVgrow(table, Priority.ALWAYS);
         getChildren().addAll(header, Fx.bar(reference, guest, from, to, status, find, add, edit, cancel), table);
     }
@@ -94,7 +97,11 @@ public final class StayView extends VBox implements Refreshable {
 
     private void cancel() {
         StayBooking stay = table.getSelectionModel().getSelectedItem();
-        if (stay == null || !Fx.confirm("Cancel " + stay.getBookingReference() + "?")) {
+        if (stay == null) {
+            Fx.info("Select a stay from the table first.");
+            return;
+        }
+        if (!Fx.confirm("Cancel " + stay.getBookingReference() + "?")) {
             return;
         }
         Fx.run(() -> {

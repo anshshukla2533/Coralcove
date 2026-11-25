@@ -52,14 +52,19 @@ public final class EmployeeView extends VBox implements Refreshable {
         Button edit = button("Edit", false);
         edit.setOnAction(event -> {
             Employee employee = people.getSelectionModel().getSelectedItem();
-            if (employee != null) {
-                edit(employee);
+            if (employee == null) {
+                Fx.info("Select an employee from the table first.");
+                return;
             }
+            edit(employee);
         });
         Button mark = button("Mark attendance", false);
         mark.setOnAction(event -> mark());
         VBox.setVgrow(people, Priority.ALWAYS);
-        attendance.setPrefHeight(180);
+        people.setMinHeight(220);
+        people.setPrefHeight(260);
+        attendance.setMinHeight(180);
+        attendance.setPrefHeight(200);
         getChildren().addAll(header, pulse, Fx.bar(search, department, find, add, edit), people,
                 Fx.bar(new Label("Attendance"), day, mark), attendance);
     }

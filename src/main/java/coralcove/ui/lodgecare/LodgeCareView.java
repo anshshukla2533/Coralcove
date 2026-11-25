@@ -66,7 +66,10 @@ public final class LodgeCareView extends VBox implements Refreshable {
         resolve.setDisable(!write);
         resolve.setOnAction(event -> resolveRepair());
         VBox.setVgrow(tasks, Priority.ALWAYS);
-        repairs.setPrefHeight(180);
+        tasks.setMinHeight(220);
+        tasks.setPrefHeight(260);
+        repairs.setMinHeight(180);
+        repairs.setPrefHeight(200);
         getChildren().addAll(
                 header,
                 pulse,
@@ -155,6 +158,7 @@ public final class LodgeCareView extends VBox implements Refreshable {
     private void updateTask() {
         LodgeCareTask task = tasks.getSelectionModel().getSelectedItem();
         if (task == null) {
+            Fx.info("Select a task from the table first.");
             return;
         }
         ComboBox<String> priority = new ComboBox<>();
@@ -222,6 +226,7 @@ public final class LodgeCareView extends VBox implements Refreshable {
     private void resolveRepair() {
         String[] row = repairs.getSelectionModel().getSelectedItem();
         if (row == null) {
+            Fx.info("Select a repair from the Estate repairs table first.");
             return;
         }
         Fx.run(care::lodges, lodges -> {

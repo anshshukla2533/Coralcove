@@ -63,6 +63,7 @@ public final class ReportsView extends VBox implements Refreshable {
         Button pdf = button("Save PDF", false);
         pdf.setOnAction(event -> exportPdf());
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setMinHeight(320);
         VBox.setVgrow(table, Priority.ALWAYS);
         getChildren().addAll(header, Fx.bar(kind, from, to, run, csv, pdf), picker, note, table);
     }

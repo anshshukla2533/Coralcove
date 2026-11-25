@@ -69,7 +69,10 @@ public final class InventoryView extends VBox implements Refreshable {
         Button supplier = button("Add supplier", false);
         supplier.setOnAction(event -> addSupplier());
         VBox.setVgrow(items, Priority.ALWAYS);
-        history.setPrefHeight(160);
+        items.setMinHeight(220);
+        items.setPrefHeight(260);
+        history.setMinHeight(170);
+        history.setPrefHeight(190);
         banner.getStyleClass().add("danger-banner");
         banner.setVisible(false);
         banner.setManaged(false);

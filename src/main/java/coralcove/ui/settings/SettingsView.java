@@ -70,7 +70,7 @@ public final class SettingsView extends VBox implements Refreshable {
         editUser.setOnAction(event -> editUser());
         Button load = button("Load sample", false);
         load.setOnAction(event -> {
-            if (Fx.confirm("Load the sample resorts, stays, and the beach.desk account?")) {
+            if (Fx.confirm("Load the sample resorts, stays, and the front account?")) {
                 Fx.run(() -> {
                     demo.load();
                     return null;
@@ -79,7 +79,7 @@ public final class SettingsView extends VBox implements Refreshable {
         });
         Button reset = button("Reset sample", false);
         reset.setOnAction(event -> {
-            if (Fx.confirm("Reset removes sample rows, the Cliff resort, and beach.desk. Beach and the administrator remain.")) {
+            if (Fx.confirm("Reset removes sample rows, the Cliff resort, and front. Beach and the administrator remain.")) {
                 Fx.run(() -> {
                     demo.reset();
                     return null;
@@ -87,10 +87,14 @@ public final class SettingsView extends VBox implements Refreshable {
             }
         });
         VBox.setVgrow(resortTable, Priority.ALWAYS);
-        userTable.setPrefHeight(200);
+        resortTable.setMinHeight(170);
+        resortTable.setPrefHeight(200);
+        userTable.setMinHeight(200);
+        userTable.setPrefHeight(220);
         ScrollPane scroller = new ScrollPane(photos);
         scroller.setFitToWidth(true);
-        scroller.setPrefHeight(140);
+        scroller.setMinHeight(150);
+        scroller.setPrefHeight(160);
         photos.setPadding(new Insets(4));
         getChildren().addAll(
                 header,

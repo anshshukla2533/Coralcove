@@ -308,8 +308,8 @@ public final class DemoDataService {
                 sync.apply(connection, lodgeId);
             }
             User desk = new User();
-            desk.setUsername("beach.desk");
-            desk.setPasswordHash(PasswordHasher.hash("Desk@123"));
+            desk.setUsername("front");
+            desk.setPasswordHash(PasswordHasher.hash("front"));
             desk.setRole(Role.FRONT_DESK);
             desk.setResortId(beachId);
             desk.setMustChangePassword(false);
@@ -322,8 +322,8 @@ public final class DemoDataService {
             new UserDAO().insert(connection, desk);
 
             User mgr = new User();
-            mgr.setUsername("cliff.mgr");
-            mgr.setPasswordHash(PasswordHasher.hash("Manager@123"));
+            mgr.setUsername("mgr");
+            mgr.setPasswordHash(PasswordHasher.hash("mgr@12"));
             mgr.setRole(Role.MANAGER);
             mgr.setResortId(cliffId);
             mgr.setMustChangePassword(false);
@@ -361,7 +361,7 @@ public final class DemoDataService {
             exec(connection, "DELETE FROM guests WHERE is_sample=1");
             exec(connection, "DELETE FROM employees WHERE is_sample=1");
             exec(connection, "DELETE FROM experiences WHERE resort_id IN (SELECT id FROM resorts WHERE is_sample=1)");
-            exec(connection, "DELETE FROM users WHERE username IN ('beach.desk', 'cliff.mgr')");
+            exec(connection, "DELETE FROM users WHERE username IN ('beach.desk', 'front', 'cliff.mgr', 'mgr')");
             exec(connection, "DELETE FROM resorts WHERE is_sample=1");
             new AuditDAO().log(connection, Session.get().getId(), "DEMO_RESET", "group_settings", "demo", "sample rows removed");
             return null;

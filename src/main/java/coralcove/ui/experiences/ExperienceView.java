@@ -67,10 +67,15 @@ public final class ExperienceView extends VBox implements Refreshable {
         advance.setOnAction(event -> advance());
         ScrollPane scroller = new ScrollPane(tiles);
         scroller.setFitToWidth(true);
-        scroller.setPrefHeight(150);
+        scroller.setMinHeight(160);
+        scroller.setPrefHeight(175);
         tiles.setPadding(new Insets(4));
         VBox.setVgrow(menu, Priority.ALWAYS);
+        menu.setMinHeight(190);
+        menu.setPrefHeight(220);
         VBox.setVgrow(orders, Priority.ALWAYS);
+        orders.setMinHeight(200);
+        orders.setPrefHeight(230);
         getChildren().addAll(header, Fx.bar(status, refresh, add, order, advance), scroller,
                 new Label("Catalog"), menu, new Label("Orders"), orders);
     }
@@ -170,6 +175,7 @@ public final class ExperienceView extends VBox implements Refreshable {
     private void advance() {
         ExperienceBooking order = orders.getSelectionModel().getSelectedItem();
         if (order == null) {
+            Fx.info("Select an order from the Orders table below first.");
             return;
         }
         ComboBox<String> next = new ComboBox<>();

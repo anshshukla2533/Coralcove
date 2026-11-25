@@ -45,9 +45,11 @@ public final class LodgeView extends VBox implements Refreshable {
         Button edit = secondary("Edit");
         edit.setOnAction(event -> {
             Lodge selected = table.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                edit(selected);
+            if (selected == null) {
+                Fx.info("Select a lodge from the table first.");
+                return;
             }
+            edit(selected);
         });
         Button status = secondary("Status");
         status.setOnAction(event -> changeStatus());
@@ -68,8 +70,11 @@ public final class LodgeView extends VBox implements Refreshable {
         table.getColumns().add(Columns.of("Status", lodge -> lodge.getStatus().name()));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         VBox.setVgrow(table, Priority.ALWAYS);
+        table.setMinHeight(240);
+        table.setPrefHeight(280);
         ScrollPane scroller = new ScrollPane(cards);
         scroller.setFitToWidth(true);
+        scroller.setMinHeight(165);
         scroller.setPrefHeight(180);
         cards.setPadding(new Insets(4));
         getChildren().addAll(header, Fx.bar(search, find, add, edit, status, delete), table, scroller);
@@ -106,6 +111,7 @@ public final class LodgeView extends VBox implements Refreshable {
     private void changeStatus() {
         Lodge lodge = table.getSelectionModel().getSelectedItem();
         if (lodge == null) {
+            Fx.info("Select a lodge from the table first.");
             return;
         }
         ComboBox<LodgeStatus> choice = new ComboBox<>();
@@ -136,6 +142,7 @@ public final class LodgeView extends VBox implements Refreshable {
     private void delete() {
         Lodge lodge = table.getSelectionModel().getSelectedItem();
         if (lodge == null) {
+            Fx.info("Select a lodge from the table first.");
             return;
         }
         if (!Fx.confirm("Delete lodge " + lodge.getUnitCode() + "?")) {

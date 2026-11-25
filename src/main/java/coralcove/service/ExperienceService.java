@@ -108,7 +108,7 @@ public final class ExperienceService {
             if (order == null) {
                 throw new AppException("Order was not found.");
             }
-            if ("SERVED".equals(status) && order.getReservationId() != null) {
+            if ("SERVED".equals(status) && order.getReservationId() != null && order.getInvoiceItemId() == null) {
                 orders.updateStatus(connection, orderId, "SERVED", null);
                 billing.attachServedOrders(connection, order.getReservationId());
             } else {

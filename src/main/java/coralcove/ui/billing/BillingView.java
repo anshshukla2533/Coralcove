@@ -1,15 +1,23 @@
 package coralcove.ui.billing;
 
+import coralcove.model.Guest;
 import coralcove.model.Invoice;
 import coralcove.model.Payment;
 import coralcove.model.PaymentMethod;
+import coralcove.model.Resort;
+import coralcove.model.StayBooking;
 import coralcove.service.BillingService;
+import coralcove.service.GuestService;
+import coralcove.service.ResortService;
+import coralcove.service.SettingsService;
+import coralcove.service.StayService;
 import coralcove.ui.Columns;
 import coralcove.ui.Fx;
 import coralcove.ui.Refreshable;
 import coralcove.ui.ScreenHeader;
 import javafx.scene.control.Label;
 import coralcove.util.CurrencyUtils;
+import coralcove.util.DateUtils;
 import coralcove.util.Money;
 import coralcove.util.PDFGenerator;
 import coralcove.util.ValidationUtils;
@@ -83,11 +91,15 @@ public final class BillingView extends VBox implements Refreshable {
         Button pdf = button("Save PDF", false);
         pdf.setOnAction(event -> savePdf());
         VBox.setVgrow(invoices, Priority.ALWAYS);
+        invoices.setMinHeight(200);
+        invoices.setPrefHeight(240);
         HBox detail = new HBox(8, items, payments);
         HBox.setHgrow(items, Priority.ALWAYS);
         HBox.setHgrow(payments, Priority.ALWAYS);
-        items.setPrefHeight(180);
-        payments.setPrefHeight(180);
+        items.setMinHeight(180);
+        items.setPrefHeight(200);
+        payments.setMinHeight(180);
+        payments.setPrefHeight(200);
         heroTitle.getStyleClass().add("panel-title");
         heroBalance.getStyleClass().add("hero-balance");
         VBox hero = new VBox(4, heroTitle, heroBalance);
@@ -125,7 +137,12 @@ public final class BillingView extends VBox implements Refreshable {
             return;
         }
         heroTitle.setText(invoice.getInvoiceNumber() + "  ·  " + invoice.getGuestName() + "  ·  " + invoice.getStatus().name());
-        heroBalance.setText("Balance " + CurrencyUtils.format(invoice.getBalance()));
+        heroBalance.setText("Subtotal " + CurrencyUtils.format(invoice.getSubtotal())
+                + "  ·  Discount " + CurrencyUtils.format(invoice.getDiscount())
+                + "  ·  Tax " + CurrencyUtils.format(invoice.getTax())
+                + "  ·  Total " + CurrencyUtils.format(invoice.getTotal())
+                + "  ·  Paid " + CurrencyUtils.format(invoice.getAmountPaid())
+                + "  ·  Balance " + CurrencyUtils.format(invoice.getBalance()));
         header.refreshPhoto();
         long id = invoice.getId();
         Fx.run(() -> new Object[] {billing.items(id), billing.payments(id)}, loaded -> {
@@ -137,6 +154,7 @@ public final class BillingView extends VBox implements Refreshable {
     private void addCharge() {
         Invoice invoice = invoices.getSelectionModel().getSelectedItem();
         if (invoice == null) {
+            Fx.info("Select an invoice from the table first.");
             return;
         }
         String lineKind = kind.getValue();
@@ -154,6 +172,7 @@ public final class BillingView extends VBox implements Refreshable {
     private void pay(boolean refund) {
         Invoice invoice = invoices.getSelectionModel().getSelectedItem();
         if (invoice == null) {
+            Fx.info("Select an invoice from the table first.");
             return;
         }
         String raw = Fx.text(amount);
@@ -168,6 +187,7 @@ public final class BillingView extends VBox implements Refreshable {
     private void applyDiscount() {
         Invoice invoice = invoices.getSelectionModel().getSelectedItem();
         if (invoice == null) {
+            Fx.info("Select an invoice from the table first.");
             return;
         }
         String raw = Fx.text(discount);
@@ -180,6 +200,7 @@ public final class BillingView extends VBox implements Refreshable {
     private void savePdf() {
         Invoice invoice = invoices.getSelectionModel().getSelectedItem();
         if (invoice == null) {
+            Fx.info("Select an invoice from the table first.");
             return;
         }
         FileChooser chooser = new FileChooser();
@@ -190,18 +211,122 @@ public final class BillingView extends VBox implements Refreshable {
             return;
         }
         long id = invoice.getId();
-        Fx.run(() -> billing.items(id), lines -> {
-            List<String> body = new ArrayList<>();
-            body.add(invoice.getGuestName());
-            body.add("Total " + CurrencyUtils.formatPlain(invoice.getTotal()));
-            body.add("Paid " + CurrencyUtils.formatPlain(invoice.getAmountPaid()));
-            body.add("Balance " + CurrencyUtils.formatPlain(invoice.getBalance()));
-            for (String[] line : lines) {
-                body.add(line[0] + "  " + line[1] + "  " + line[2] + " x Rs. " + line[3]);
+        long resId = invoice.getReservationId();
+        long guestId = invoice.getGuestId();
+        Fx.run(() -> {
+            List<String[]> lines = billing.items(id);
+            List<Payment> paidRows = billing.payments(id);
+            StayBooking stay = resId > 0 ? new StayService().find(resId) : null;
+            Guest guestRecord = guestId > 0 ? new GuestService().findById(guestId) : null;
+            Resort resort = null;
+            if (stay != null) {
+                for (Resort r : new ResortService().list(false)) {
+                    if (r.getId() == stay.getResortId()) {
+                        resort = r;
+                        break;
+                    }
+                }
             }
-            PDFGenerator.write(file.toPath(), invoice.getInvoiceNumber(), body);
+            return new Object[] {lines, paidRows, stay, guestRecord, resort};
+        }, data -> {
+            @SuppressWarnings("unchecked")
+            List<String[]> lines = (List<String[]>) data[0];
+            @SuppressWarnings("unchecked")
+            List<Payment> paidRows = (List<Payment>) data[1];
+            StayBooking stay = (StayBooking) data[2];
+            Guest guestRecord = (Guest) data[3];
+            Resort resort = (Resort) data[4];
+
+            String rule = "----------------------------------------------------------------------";
+            List<String> body = new ArrayList<>();
+            String resortLine = resort != null
+                    ? resort.getName() + " - " + resort.getLocation()
+                        + (resort.getCoastline() != null && !resort.getCoastline().isBlank() ? " (" + resort.getCoastline() + ")" : "")
+                    : SettingsService.hotelName() + " Resort Group";
+            body.add(resortLine);
+            body.add("Tax Invoice / Guest Folio");
+            body.add("Issued: " + safe(invoice.getIssuedAt()) + "   |   Status: " + invoice.getStatus().name());
+            body.add(rule);
+
+            body.add("GUEST DETAILS");
+            body.add("Name: " + safe(invoice.getGuestName()));
+            if (guestRecord != null) {
+                if (!safe(guestRecord.getPhone()).isBlank() || !safe(guestRecord.getEmail()).isBlank()) {
+                    body.add("Phone: " + dash(guestRecord.getPhone()) + "   |   Email: " + dash(guestRecord.getEmail()));
+                }
+                if (!safe(guestRecord.getNationality()).isBlank() || !safe(guestRecord.getAddress()).isBlank()) {
+                    body.add("Nationality: " + dash(guestRecord.getNationality())
+                            + (!safe(guestRecord.getAddress()).isBlank() ? "   |   Address: " + guestRecord.getAddress() : ""));
+                }
+                String kyc = guestRecord.isAadharVerified() ? "Aadhaar Verified" : "Pending";
+                String docInfo = !safe(guestRecord.getIdDocType()).isBlank()
+                        ? guestRecord.getIdDocType() + " " + safe(guestRecord.getIdDocNumber())
+                        : "Not recorded";
+                body.add("ID Proof: " + docInfo.trim() + "   |   KYC: " + kyc);
+            }
+            body.add(rule);
+
+            if (stay != null) {
+                body.add("STAY DETAILS");
+                body.add("Booking Ref: " + safe(stay.getBookingReference())
+                        + "   |   Lodge: " + dash(stay.getUnitCode())
+                        + "   |   Source: " + (stay.getSource() != null ? stay.getSource().label() : "-"));
+                body.add("Check-in: " + DateUtils.display(stay.getCheckIn())
+                        + "   |   Check-out: " + DateUtils.display(stay.getCheckOut())
+                        + "   |   Nights: " + stay.getNights());
+                body.add("Party: " + stay.getAdults() + " Adult(s), " + stay.getChildren() + " Child(ren)"
+                        + "   |   Meal Plan: " + dash(stay.getMealPlan())
+                        + "   |   Transfer: " + dash(stay.getTransfer()));
+                body.add(rule);
+            }
+
+            body.add("ITEMIZED CHARGES");
+            if (lines.isEmpty()) {
+                body.add("No line items recorded.");
+            } else {
+                for (String[] line : lines) {
+                    body.add("[" + line[0] + "] " + line[1]
+                            + "  |  " + line[2] + " x Rs. " + line[3]
+                            + "  =  Rs. " + line[4]);
+                }
+            }
+            body.add(rule);
+
+            String taxRate = resort != null ? resort.getTaxPercent() + "%" : SettingsService.taxPercent().toPlainString() + "%";
+            body.add("FOLIO SUMMARY");
+            body.add("Subtotal:       " + CurrencyUtils.formatPlain(invoice.getSubtotal()));
+            body.add("Discount:      -" + CurrencyUtils.formatPlain(invoice.getDiscount()));
+            body.add("Tax (" + taxRate + "):     " + CurrencyUtils.formatPlain(invoice.getTax()));
+            body.add("Grand Total:    " + CurrencyUtils.formatPlain(invoice.getTotal()));
+            body.add("Amount Paid:    " + CurrencyUtils.formatPlain(invoice.getAmountPaid()));
+            body.add("Balance Due:    " + CurrencyUtils.formatPlain(invoice.getBalance()));
+            body.add(rule);
+
+            body.add("PAYMENT HISTORY");
+            if (paidRows.isEmpty()) {
+                body.add("No payments recorded yet.");
+            } else {
+                for (Payment p : paidRows) {
+                    body.add(safe(p.getPaidAt()) + "  |  " + p.getMethod().label()
+                            + "  |  Ref: " + safe(p.getReference())
+                            + "  |  " + CurrencyUtils.formatPlain(p.getAmount())
+                            + (!safe(p.getNote()).isBlank() ? " (" + p.getNote() + ")" : ""));
+                }
+            }
+            body.add(rule);
+            body.add("Thank you for staying with CoralCove Resorts.");
+
+            PDFGenerator.write(file.toPath(), "INVOICE " + invoice.getInvoiceNumber(), body);
             Fx.info("Saved " + file.getName());
         });
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static String dash(String value) {
+        return value == null || value.isBlank() ? "-" : value.trim();
     }
 
     private static Button button(String text, boolean primary) {

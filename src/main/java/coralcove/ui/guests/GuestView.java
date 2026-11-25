@@ -34,9 +34,11 @@ public final class GuestView extends VBox implements Refreshable {
         Button edit = button("Edit", false);
         edit.setOnAction(event -> {
             Guest guest = table.getSelectionModel().getSelectedItem();
-            if (guest != null) {
-                edit(guest);
+            if (guest == null) {
+                Fx.info("Select a guest from the table first.");
+                return;
             }
+            edit(guest);
         });
         Button remove = button("Delete", false);
         remove.setOnAction(event -> delete());
@@ -47,7 +49,7 @@ public final class GuestView extends VBox implements Refreshable {
         table.getColumns().add(Columns.of("Class", Guest::getVip));
         table.getColumns().add(Columns.of("Aadhaar", guest -> guest.isAadharVerified() ? "✓ Verified" : "Pending"));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        VBox.setVgrow(table, Priority.ALWAYS);
+        table.setMinHeight(320);
         summaryName.getStyleClass().add("panel-title");
         summaryMeta.getStyleClass().add("muted");
         summaryMeta.setWrapText(true);
@@ -56,6 +58,7 @@ public final class GuestView extends VBox implements Refreshable {
         table.getSelectionModel().selectedItemProperty().addListener((obs, a, guest) -> show(guest));
         HBox body = new HBox(12, table, summary);
         HBox.setHgrow(table, Priority.ALWAYS);
+        VBox.setVgrow(body, Priority.ALWAYS);
         getChildren().addAll(header, Fx.bar(search, find, add, edit, remove), body);
     }
 
@@ -113,7 +116,11 @@ public final class GuestView extends VBox implements Refreshable {
 
     private void delete() {
         Guest guest = table.getSelectionModel().getSelectedItem();
-        if (guest == null || !Fx.confirm("Delete " + guest.getFullName() + "?")) {
+        if (guest == null) {
+            Fx.info("Select a guest from the table first.");
+            return;
+        }
+        if (!Fx.confirm("Delete " + guest.getFullName() + "?")) {
             return;
         }
         Fx.run(() -> {

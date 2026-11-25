@@ -57,8 +57,10 @@ public final class DashboardView extends VBox implements Refreshable {
             GridPane.setHgrow(card, Priority.ALWAYS);
             cards.add(card, i % 4, i / 4);
         }
-        arrivalTable.setPrefHeight(160);
-        departureTable.setPrefHeight(160);
+        arrivalTable.setMinHeight(180);
+        arrivalTable.setPrefHeight(200);
+        departureTable.setMinHeight(180);
+        departureTable.setPrefHeight(200);
         arrivalTable.setPlaceholder(emptyNote("No arrivals today."));
         departureTable.setPlaceholder(emptyNote("No departures today."));
         HBox lists = new HBox(12, titled("Today's arrivals", arrivalTable), titled("Today's departures", departureTable));
@@ -104,6 +106,7 @@ public final class DashboardView extends VBox implements Refreshable {
             PieChart pie = new PieChart();
             pie.setTitle("Lodge categories");
             pie.setLegendVisible(false);
+            pie.setMinHeight(220);
             pie.setPrefHeight(220);
             snapshot.roomTypes.forEach((name, count) -> pie.getData().add(new PieChart.Data(name, count)));
             charts.getChildren().add(pie);
@@ -114,6 +117,7 @@ public final class DashboardView extends VBox implements Refreshable {
         BarChart<String, Number> chart = new BarChart<>(new CategoryAxis(), new NumberAxis());
         chart.setTitle(title);
         chart.setLegendVisible(false);
+        chart.setMinHeight(220);
         chart.setPrefHeight(220);
         XYChart.Series<String, Number> data = new XYChart.Series<>();
         series.forEach((key, value) -> data.getData().add(new XYChart.Data<>(key, value)));
@@ -125,6 +129,7 @@ public final class DashboardView extends VBox implements Refreshable {
         BarChart<String, Number> chart = new BarChart<>(new CategoryAxis(), new NumberAxis());
         chart.setTitle(title);
         chart.setLegendVisible(false);
+        chart.setMinHeight(220);
         chart.setPrefHeight(220);
         XYChart.Series<String, Number> data = new XYChart.Series<>();
         series.forEach((key, value) -> data.getData().add(new XYChart.Data<>(key, value)));

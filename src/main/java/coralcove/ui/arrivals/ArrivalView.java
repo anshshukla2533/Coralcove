@@ -101,7 +101,9 @@ public final class ArrivalView extends VBox implements Refreshable {
             return (g != null && g.isAadharVerified()) ? "✓ Verified" : "Pending";
         }));
         arrivalTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-        arrivalTable.setPrefHeight(220);
+        arrivalTable.setMinHeight(220);
+        arrivalTable.setPrefHeight(250);
+        VBox.setVgrow(arrivalTable, Priority.ALWAYS);
         arrivalTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
             if (selected != null) {
                 reference.setText(selected.getBookingReference());
